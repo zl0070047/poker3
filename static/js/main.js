@@ -1,5 +1,96 @@
 // 建立WebSocket连接
-const socket = io();
+// 在本地开发时使用相对路径，在生产环境使用绝对URL
+const socketUrl = (window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' || 
+    window.location.hostname.includes('192.168.')) 
+? '/' 
+: window.location.origin;
+
+// 连接选项
+const socketOptions = {
+transports: ['websocket', 'polling'], // 先尝试WebSocket，失败后回退到轮询
+reconnection: true,
+reconnectionAttempts: 10,
+reconnectionDelay: 1000,
+timeout: 20000,
+auth: {
+clientVersion: '1.0.0' // 客户端版本号，方便服务端追踪
+}
+};
+
+// 连接Socket.IO服务器
+const socket = io(socketUrl, socketOptions);
+
+// 添加连接状态监听
+socket.on('connect', function() {
+console.log('连接成功');
+// 如果页面在重连后加载，清除任何错误提示
+const toastMessage = document.getElementById('toast-message');
+if (toastMessage) toastMessage.style.display = 'none';
+
+// 开始发送心跳
+startHeartbeat();
+});
+
+socket.on('connect_error', function(error) {
+console.error('连接错误:', error);
+showMessage('连接服务器失败，请检查网络连接', 'error');
+
+// 5秒后自动尝试重连
+setTimeout(() => {
+if (!socket.connected) {
+console.log('正在尝试重新连接...');
+socket.connect();
+}
+}, 5000);
+});
+
+socket.on('disconnect', function() {
+console.log('连接断开');
+showMessage('与服务器的连接已断开，正在尝试重新连接...', 'warning');
+stopHeartbeat();
+});
+
+// 服务器确认连接成功
+socket.on('connection_success', function(data) {
+console.log('服务器确认连接成功:', data.message);
+});
+
+// 心跳机制，保持连接活跃
+let heartbeatInterval;
+
+function startHeartbeat() {
+// 每30秒发送一次心跳
+heartbeatInterval = setInterval(() => {
+if (socket.connected) {
+socket.emit('ping');
+}
+}, 30000);
+}
+
+function stopHeartbeat() {
+if (heartbeatInterval) {
+clearInterval(heartbeatInterval);
+}
+}
+
+// 服务器心跳响应
+socket.on('pong', function() {
+console.log('收到服务器心跳响应');
+});
+
+// 通用错误处理
+socket.on('error', function(data) {
+console.error('Socket错误:', data.message);
+showMessage(data.message, 'error');
+});
+
+// 窗口关闭前尝试清理连接
+window.addEventListener('beforeunload', function() {
+if (socket.connected) {
+socket.disconnect();
+}
+});
 
 // 游戏状态
 let gameState = {
