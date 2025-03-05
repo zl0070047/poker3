@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德州扑克 - 豪华赌场</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 登录界面 -->
+        <div id="login-screen" class="screen">
+            <div class="casino-logo">
+                <div class="logo-icon"><i class="fas fa-crown"></i></div>
+                <h1>豪华德州扑克</h1>
+                <div class="tagline">尊贵体验，尽在掌握</div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="create">创建房间</button>
+                <button class="tab-btn" data-tab="join">加入房间</button>
+            </div>
+            
+            <div class="tab-content">
+                <!-- 创建房间表单 -->
+                <div id="create-tab" class="tab-pane active">
+                    <div class="login-form">
+                        <div class="avatar-selection">
+                            <label>选择头像</label>
+                            <div class="avatar-options">
+                                <div class="avatar-option selected" data-avatar="avatar1"><i class="fas fa-user-tie"></i></div>
+                                <div class="avatar-option" data-avatar="avatar2"><i class="fas fa-user-ninja"></i></div>
+                                <div class="avatar-option" data-avatar="avatar3"><i class="fas fa-user-astronaut"></i></div>
+                                <div class="avatar-option" data-avatar="avatar4"><i class="fas fa-user-secret"></i></div>
+                                <div class="avatar-option" data-avatar="avatar5"><i class="fas fa-user-crown"></i></div>
+                            </div>
+                        </div>
+                        
+                        <input type="text" id="create-username" placeholder="输入您的尊贵昵称">
+                        
+                        <div class="form-group">
+                            <label>游戏设置</label>
+                            <div class="game-settings">
+                                <div class="setting-item">
+                                    <span class="setting-label">小盲注</span>
+                                    <input type="number" id="small-blind" placeholder="小盲注金额" value="10">
+                                </div>
+                                <div class="setting-item">
+                                    <span class="setting-label">大盲注</span>
+                                    <input type="number" id="big-blind" placeholder="大盲注金额" value="20">
+                                </div>
+                                <div class="setting-item">
+                                    <span class="setting-label">ALL IN后发牌次数</span>
+                                    <input type="number" id="all-in-rounds" placeholder="ALL IN后发牌次数" value="3">
+                                </div>
+                                <div class="setting-item">
+                                    <span class="setting-label">初始筹码</span>
+                                    <input type="number" id="initial-chips" placeholder="初始筹码" value="1000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button id="create-room-btn" class="gold-btn">创建豪华房间</button>
+                    </div>
+                </div>
+                
+                <!-- 加入房间表单 -->
+                <div id="join-tab" class="tab-pane">
+                    <div class="login-form">
+                        <div class="avatar-selection">
+                            <label>选择头像</label>
+                            <div class="avatar-options">
+                                <div class="avatar-option selected" data-avatar="avatar1"><i class="fas fa-user-tie"></i></div>
+                                <div class="avatar-option" data-avatar="avatar2"><i class="fas fa-user-ninja"></i></div>
+                                <div class="avatar-option" data-avatar="avatar3"><i class="fas fa-user-astronaut"></i></div>
+                                <div class="avatar-option" data-avatar="avatar4"><i class="fas fa-user-secret"></i></div>
+                                <div class="avatar-option" data-avatar="avatar5"><i class="fas fa-user-crown"></i></div>
+                            </div>
+                        </div>
+                        
+                        <input type="text" id="join-username" placeholder="输入您的尊贵昵称">
+                        <input type="text" id="room-id" placeholder="输入房间号">
+                        
+                        <button id="join-room-btn" class="gold-btn">加入豪华房间</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 房间创建成功提示 -->
+            <div id="room-created" class="notification hidden">
+                <div class="notification-content">
+                    <h3>房间创建成功!</h3>
+                    <p>您的房间号：<span id="created-room-id" class="room-id-display">12345</span></p>
+                    <p>分享给好友，邀请他们加入</p>
+                    <button id="copy-room-id" class="copy-btn"><i class="fas fa-copy"></i> 复制房间号</button>
+                    <button id="enter-room-btn" class="gold-btn">进入房间</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <div class="room-info">
+                    <span class="room-label">房间号: <span id="display-room-id">12345</span></span>
+                    <button id="copy-game-room-id" class="copy-btn small"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="game-status">
+                    <span id="game-status-text">等待玩家加入...</span>
+                </div>
+                <div class="pot-container">
+                    <div class="pot-chips"></div>
+                    <div class="pot">底池: <span id="pot-amount">0</span></div>
+                </div>
+                <div class="leaderboard-toggle" id="leaderboard-toggle">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+
+            <!-- 排行榜面板 -->
+            <div id="leaderboard-panel" class="leaderboard-panel">
+                <div class="leaderboard-content">
+                    <div class="leaderboard-header">
+                        <h3>排行榜</h3>
+                        <button id="close-leaderboard" class="close-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="leaderboard-tabs">
+                        <button class="leaderboard-tab active" data-tab="room">房间排名</button>
+                        <button class="leaderboard-tab" data-tab="history">历史最佳</button>
+                    </div>
+                    <div class="leaderboard-tab-content">
+                        <div id="room-leaderboard" class="leaderboard-pane active">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>玩家</th>
+                                        <th>当前筹码</th>
+                                        <th>净赢得</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="room-leaderboard-body">
+                                    <!-- 房间排行榜数据将动态插入 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="history-leaderboard" class="leaderboard-pane">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>玩家</th>
+                                        <th>最高筹码</th>
+                                        <th>游戏场次</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-leaderboard-body">
+                                    <!-- 历史排行榜数据将动态插入 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 等待玩家面板 -->
+            <div id="waiting-panel" class="panel">
+                <div class="waiting-content">
+                    <h2>等待玩家加入</h2>
+                    
+                    <div class="room-id-display">
+                        <div>
+                            <span class="room-id-label">房间号:</span>
+                            <span id="room-id-value" class="room-id-value">-</span>
+                        </div>
+                        <button id="copy-room-id" class="copy-btn">复制</button>
+                    </div>
+                    
+                    <div class="player-status">
+                        <p>当前玩家: <span id="current-player-count">1</span>/10</p>
+                        <div id="waiting-players" class="waiting-players"></div>
+                    </div>
+                    
+                    <div id="host-controls" class="host-controls">
+                        <p><span class="host-tag">房主</span> 您可以决定何时开始游戏</p>
+                        <button id="start-game-btn" class="btn" disabled>开始游戏 (至少需要2位玩家)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="poker-table">
+                <div class="table-felt">
+                    <div class="table-logo">
+                        <i class="fas fa-crown"></i>
+                        <span>豪华德州</span>
+                    </div>
+                    
+                    <div class="community-cards-container">
+                        <div class="community-cards" id="community-cards"></div>
+                    </div>
+                    
+                    <div class="players-container" id="players-container">
+                        <!-- 玩家位置会动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-controls">
+                <div class="player-info-area">
+                    <div class="player-avatar">
+                        <i id="player-avatar-icon" class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="player-stats">
+                        <div class="player-name" id="player-name">玩家名称</div>
+                        <div class="player-chips-info">筹码: <span id="player-chips">1000</span></div>
+                    </div>
+                </div>
+                
+                <div class="player-cards" id="player-cards"></div>
+                
+                <div class="action-controls">
+                    <div class="action-timer" id="action-timer">
+                        <div class="timer-progress"></div>
+                        <span class="timer-seconds">30</span>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="fold-btn" class="action-btn fold-btn"><i class="fas fa-times"></i> 弃牌</button>
+                        <button id="check-btn" class="action-btn check-btn"><i class="fas fa-check"></i> 看牌</button>
+                        <button id="call-btn" class="action-btn call-btn"><i class="fas fa-sync-alt"></i> 跟注</button>
+                        <div class="raise-control">
+                            <button id="raise-btn" class="action-btn raise-btn"><i class="fas fa-arrow-up"></i> 加注</button>
+                            <input type="number" id="raise-amount" class="raise-input" placeholder="加注金额">
+                            <div class="raise-slider-container">
+                                <input type="range" id="raise-slider" min="0" max="1000" step="10" value="0">
+                                <div class="slider-labels">
+                                    <span>MIN</span>
+                                    <span>MAX</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="all-in-btn" class="action-btn all-in-btn"><i class="fas fa-rocket"></i> ALL IN</button>
+                    </div>
+                    
+                    <div class="bet-info">
+                        <span>当前下注: <span id="current-bet">0</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 游戏结果显示 -->
+            <div id="game-result" class="game-result hidden">
+                <div class="result-content">
+                    <h2>本局结果</h2>
+                    <div id="winners-list" class="winners-list">
+                        <!-- 获胜者信息将动态插入 -->
+                    </div>
+                    <div class="result-actions">
+                        <button id="view-history-btn" class="history-btn"><i class="fas fa-history"></i> 回看本局</button>
+                        <button id="next-game-btn" class="gold-btn">下一局</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏历史回看面板 -->
+            <div id="history-panel" class="history-panel hidden">
+                <div class="history-content">
+                    <div class="history-header">
+                        <h3>游戏回顾</h3>
+                        <button id="close-history" class="close-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="history-timeline">
+                        <div class="timeline-controls">
+                            <button id="history-prev" class="timeline-btn"><i class="fas fa-step-backward"></i></button>
+                            <div class="timeline-stage">
+                                <span id="history-stage">发牌前</span>
+                                <div class="timeline-progress">
+                                    <div id="timeline-progress-bar" class="timeline-progress-bar"></div>
+                                </div>
+                            </div>
+                            <button id="history-next" class="timeline-btn"><i class="fas fa-step-forward"></i></button>
+                        </div>
+                    </div>
+                    <div class="history-table">
+                        <div class="history-community-cards" id="history-community-cards"></div>
+                        <div class="history-pot">底池: <span id="history-pot">0</span></div>
+                        <div class="history-players-container" id="history-players-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 聊天系统 -->
+            <div id="chat-system" class="chat-system">
+                <div class="chat-toggle" id="chat-toggle">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3>聊天室</h3>
+                        <button id="close-chat" class="close-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="chat-messages" class="chat-messages"></div>
+                    <div class="emoji-picker-container">
+                        <div id="emoji-picker" class="emoji-picker">
+                            <div class="emoji-group">
+                                <span class="emoji" data-emoji="😀">😀</span>
+                                <span class="emoji" data-emoji="😎">😎</span>
+                                <span class="emoji" data-emoji="🤔">🤔</span>
+                                <span class="emoji" data-emoji="😂">😂</span>
+                                <span class="emoji" data-emoji="👍">👍</span>
+                                <span class="emoji" data-emoji="👎">👎</span>
+                                <span class="emoji" data-emoji="🎲">🎲</span>
+                                <span class="emoji" data-emoji="🎯">🎯</span>
+                                <span class="emoji" data-emoji="🎰">🎰</span>
+                                <span class="emoji" data-emoji="💰">💰</span>
+                                <span class="emoji" data-emoji="💸">💸</span>
+                                <span class="emoji" data-emoji="🤑">🤑</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <button id="show-emojis" class="emoji-btn"><i class="fas fa-smile"></i></button>
+                        <input type="text" id="chat-input" placeholder="输入消息...">
+                        <button id="send-message" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 性能设置选项 -->
+    <div class="performance-toggle" id="performance-toggle" aria-label="性能设置" role="button" tabindex="0">
+        <div class="performance-toggle-icon">
+            <i class="fas fa-sliders-h"></i>
+        </div>
+    </div>
+    
+    <div class="performance-menu" id="performance-menu" role="dialog" aria-label="性能设置选项">
+        <h3>性能选项</h3>
+        
+        <div class="performance-option">
+            <div class="performance-option-label">
+                <span>动画效果</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-animations" checked aria-label="启用动画效果">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="option-description">启用或禁用卡牌动画效果</div>
+        </div>
+        
+        <div class="performance-option">
+            <div class="performance-option-label">
+                <span>模糊效果</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-blur" checked aria-label="启用模糊效果">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="option-description">启用或禁用背景模糊效果(提升性能)</div>
+        </div>
+        
+        <div class="performance-option">
+            <div class="performance-option-label">
+                <span>动画速度</span>
+            </div>
+            <input type="range" id="animation-speed" min="0.5" max="2" step="0.1" value="1" aria-label="动画速度">
+            <div class="slider-labels">
+                <span>慢</span>
+                <span>中</span>
+                <span>快</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 
