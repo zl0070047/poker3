@@ -1,6 +1,272 @@
 // 德州扑克游戏简化版JavaScript - 增强版
 console.log('加载简化版JavaScript (增强版)...');
 
+// 游戏状态管理
+const gameState = {
+    username: '',
+    room: '',
+    avatar: 'avatar1',
+    isHost: false,
+    players: [],
+    settings: {
+        smallBlind: 10,
+        bigBlind: 20,
+        initialChips: 1000,
+        allInRounds: 3
+    }
+};
+
+// Socket.IO 连接
+let socket;
+let socketConnected = false;
+
+// 初始化Socket.IO连接
+function initializeSocket() {
+    console.log('初始化Socket.IO连接...');
+    
+    socket = io('/', {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+    });
+    
+    // 连接成功
+    socket.on('connect', function() {
+        console.log('Socket.IO连接成功');
+        socketConnected = true;
+        window.socket = socket;  // 保存到全局变量
+    });
+    
+    // 连接错误
+    socket.on('connect_error', function(error) {
+        console.error('Socket.IO连接错误:', error);
+        socketConnected = false;
+    });
+    
+    // 断开连接
+    socket.on('disconnect', function() {
+        console.log('Socket.IO连接断开');
+        socketConnected = false;
+    });
+    
+    // 房间创建成功
+    socket.on('room_created', function(data) {
+        console.log('房间创建成功:', data);
+        
+        // 更新游戏状态
+        gameState.room = data.room_id;
+        gameState.isHost = true;
+        gameState.players = data.players;
+        
+        // 显示成功提示
+        document.getElementById('room-created').classList.remove('hidden');
+        document.getElementById('created-room-id').textContent = data.room_id;
+        
+        // 更新等待面板
+        updateWaitingPanel(data);
+    });
+    
+    // 房间加入成功
+    socket.on('room_joined', function(data) {
+        console.log('成功加入房间:', data);
+        
+        // 更新游戏状态
+        gameState.room = data.room_id;
+        gameState.players = data.players;
+        gameState.settings = data.settings;
+        
+        // 切换到等待面板
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('waiting-panel').style.display = 'block';
+        document.getElementById('room-id-value').textContent = data.room_id;
+        
+        // 更新等待面板
+        updateWaitingPanel(data);
+    });
+    
+    // 玩家列表更新
+    socket.on('player_list_updated', function(data) {
+        console.log('玩家列表更新:', data);
+        gameState.players = data.players;
+        updateWaitingPanel({ players: data.players });
+    });
+    
+    // 游戏开始
+    socket.on('game_start', function(data) {
+        console.log('游戏开始:', data);
+        document.getElementById('waiting-panel').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+    });
+    
+    // 错误处理
+    socket.on('error', function(data) {
+        console.error('收到错误:', data);
+        alert(data.message || '发生错误');
+    });
+}
+
+// 更新等待面板
+function updateWaitingPanel(data) {
+    const waitingPlayers = document.getElementById('waiting-players');
+    const currentPlayerCount = document.getElementById('current-player-count');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const hostControls = document.getElementById('host-controls');
+    
+    if (waitingPlayers && data.players) {
+        waitingPlayers.innerHTML = '';
+        data.players.forEach(player => {
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'waiting-player';
+            playerDiv.innerHTML = `
+                <div class="player-avatar">
+                    <i class="fas ${player.avatar === 'avatar1' ? 'fa-user-tie' : 
+                                   player.avatar === 'avatar2' ? 'fa-user-ninja' :
+                                   player.avatar === 'avatar3' ? 'fa-user-astronaut' :
+                                   player.avatar === 'avatar4' ? 'fa-user-secret' :
+                                   'fa-user-crown'}"></i>
+                </div>
+                <div class="player-name">${player.username}</div>
+                ${player.isHost ? '<span class="host-tag">房主</span>' : ''}
+            `;
+            waitingPlayers.appendChild(playerDiv);
+        });
+        
+        if (currentPlayerCount) {
+            currentPlayerCount.textContent = `${data.players.length}`;
+        }
+        
+        // 更新开始游戏按钮状态
+        if (startGameBtn) {
+            const canStart = data.players.length >= 4;
+            startGameBtn.disabled = !canStart;
+            startGameBtn.textContent = canStart ? 
+                '开始游戏' : 
+                `开始游戏 (至少需要${4}位玩家)`;
+        }
+        
+        // 显示/隐藏房主控制面板
+        if (hostControls) {
+            const isHost = data.players.some(p => p.username === gameState.username && p.isHost);
+            hostControls.style.display = isHost ? 'block' : 'none';
+        }
+    }
+}
+
+// 创建房间
+function handleCreateRoom() {
+    console.log('处理创建房间请求');
+    
+    const username = document.getElementById('create-username').value.trim();
+    if (!username) {
+        alert('请输入用户名');
+        return;
+    }
+    
+    // 获取游戏设置
+    const settings = {
+        smallBlind: parseInt(document.getElementById('small-blind').value) || 10,
+        bigBlind: parseInt(document.getElementById('big-blind').value) || 20,
+        allInRounds: parseInt(document.getElementById('all-in-rounds').value) || 3,
+        initialChips: parseInt(document.getElementById('initial-chips').value) || 1000
+    };
+    
+    // 更新游戏状态
+    gameState.username = username;
+    gameState.settings = settings;
+    
+    console.log('创建房间参数:', { username, settings });
+    
+    if (socketConnected && socket) {
+        socket.emit('create_room', {
+            username: username,
+            avatar: gameState.avatar,
+            ...settings
+        });
+    } else {
+        // HTTP备用方案
+        fetch('/api/create-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                avatar: gameState.avatar,
+                ...settings
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                gameState.room = data.room_id;
+                gameState.isHost = true;
+                gameState.players = data.players;
+                
+                document.getElementById('room-created').classList.remove('hidden');
+                document.getElementById('created-room-id').textContent = data.room_id;
+                
+                updateWaitingPanel(data);
+            } else {
+                alert(data.message || '创建房间失败');
+            }
+        })
+        .catch(error => {
+            console.error('创建房间错误:', error);
+            alert('创建房间失败: ' + error.message);
+        });
+    }
+}
+
+// 初始化事件监听
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM加载完成，初始化事件监听');
+    
+    // 初始化Socket.IO
+    initializeSocket();
+    
+    // 创建房间按钮
+    const createRoomBtn = document.getElementById('create-room-btn');
+    if (createRoomBtn) {
+        createRoomBtn.addEventListener('click', handleCreateRoom);
+    }
+    
+    // 进入房间按钮
+    const enterRoomBtn = document.getElementById('enter-room-btn');
+    if (enterRoomBtn) {
+        enterRoomBtn.addEventListener('click', function() {
+            document.getElementById('room-created').classList.add('hidden');
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('waiting-panel').style.display = 'block';
+            document.getElementById('room-id-value').textContent = gameState.room;
+        });
+    }
+    
+    // 开始游戏按钮
+    const startGameBtn = document.getElementById('start-game-btn');
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', function() {
+            if (gameState.room && gameState.isHost) {
+                socket.emit('start_game', { room_id: gameState.room });
+            }
+        });
+    }
+    
+    // 复制房间号按钮
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const roomId = gameState.room || document.getElementById('created-room-id').textContent;
+            navigator.clipboard.writeText(roomId).then(() => {
+                alert('房间号已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制');
+            });
+        });
+    });
+});
+
 // 立即执行的修复函数 - 在DOM加载前就开始尝试修复按钮问题
 (function() {
     console.log('立即执行的按钮修复函数启动');
