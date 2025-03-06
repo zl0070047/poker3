@@ -1,94 +1,75 @@
-# 德州扑克在线游戏
+# 豪华德州扑克游戏
 
-这是一个基于 Flask 和 Socket.IO 的在线德州扑克游戏。
+一个基于Flask和Socket.IO的在线多人德州扑克游戏。
 
-## 功能特点
+## 特点
 
-- 支持多人在线游戏（4-10人）
-- 实时游戏状态更新
-- 房间系统
-- 玩家筹码管理
-- 完整的德州扑克游戏流程
+- 🎮 支持4-10人游戏
+- 💰 完整的德州扑克规则
+- 🎯 实时游戏状态更新
+- 📊 实时排行榜系统
+- 💬 游戏内聊天系统
+- 🎨 精美的苹果风格UI设计
+- 📱 响应式设计，支持手机和电脑
 
 ## 技术栈
 
 - 后端：Flask + Flask-SocketIO
 - 前端：HTML5 + CSS3 + JavaScript
-- WebSocket：Socket.IO
-- 部署：Render
+- 实时通信：Socket.IO
+- 样式：原生CSS，苹果设计风格
 
-## 目录结构
-
-```
-.
-├── app_simple.py          # 主应用文件
-├── static/               # 静态文件目录
-│   ├── css/             # CSS 样式文件
-│   │   └── style.css    # 主样式文件
-│   ├── js/              # JavaScript 文件
-│   │   ├── simple.js    # 主要游戏逻辑
-│   │   └── tabs.js      # 标签页切换逻辑
-│   └── images/          # 图片资源
-├── templates/           # HTML 模板
-│   ├── index.html      # 主页面
-│   └── diagnose.html   # 诊断页面
-├── requirements.txt     # Python 依赖
-├── Procfile            # Render 部署配置
-├── runtime.txt         # Python 运行时版本
-└── render.yaml         # Render 服务配置
-```
-
-## 安装和运行
+## 本地开发
 
 1. 克隆仓库：
 ```bash
-git clone [repository-url]
+git clone https://github.com/yourusername/poker-game.git
 cd poker-game
 ```
 
-2. 创建虚拟环境：
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# 或
-.venv\Scripts\activate  # Windows
-```
-
-3. 安装依赖：
+2. 安装依赖：
 ```bash
 pip install -r requirements.txt
 ```
 
-4. 运行应用：
+3. 运行开发服务器：
 ```bash
 python app_simple.py
 ```
 
-5. 访问应用：
-打开浏览器访问 http://localhost:5000
-
-## 游戏规则
-
-1. 每个房间需要 4-10 名玩家
-2. 游戏使用标准的德州扑克规则
-3. 每位玩家初始筹码为 1000
-4. 小盲注默认为 10，大盲注默认为 20
+4. 访问 http://localhost:5000
 
 ## 部署
 
-本项目已配置为可在 Render 上部署。详细部署步骤请参考部署文档。
+1. 确保安装了所有依赖：
+```bash
+pip install -r requirements.txt
+```
 
-## 开发说明
+2. 使用gunicorn启动（生产环境）：
+```bash
+gunicorn --worker-class eventlet -w 1 app_simple:app
+```
 
-- `app_simple.py` 包含所有后端逻辑
-- `simple.js` 包含主要的前端游戏逻辑
-- `style.css` 包含所有样式定义
-- Socket.IO 用于实时游戏状态更新
+## 游戏规则
+
+1. 每个玩家初始获得1000筹码
+2. 小盲/大盲可在创建房间时设置
+3. 支持ALL IN，最多可设置3轮发牌
+4. 每位玩家有60秒决策时间
+
+## 功能特点
+
+- 实时排行榜
+- 游戏内聊天系统
+- 玩家统计
+- 房间系统
+- 观战模式
 
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request。
+欢迎提交Issue和Pull Request！
 
-## 许可证
+## 许可
 
 MIT License
