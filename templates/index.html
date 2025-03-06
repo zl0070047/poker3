@@ -8,6 +8,27 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script>
+        // Socket.IO 连接配置
+        window.addEventListener('load', function() {
+            const socket = io({
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+
+            socket.on('connect', function() {
+                console.log('Socket.IO连接成功');
+            });
+
+            socket.on('connect_error', function(error) {
+                console.error('Socket.IO连接错误:', error);
+            });
+
+            window.socket = socket;
+        });
+    </script>
 </head>
 <body>
     <div class="container">

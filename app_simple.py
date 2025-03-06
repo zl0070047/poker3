@@ -1,15 +1,33 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from flask_socketio import SocketIO, join_room, leave_room, emit
+from flask_cors import CORS
 import random
 import logging
+import os
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", ping_timeout=60)
+# 启用CORS
+CORS(app)
+
+# 设置安全密钥
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key')
+# 设置session配置
+app.config['SESSION_COOKIE_SECURE'] = False  # 本地开发设置为False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # session有效期1小时
+app.config['CORS_HEADERS'] = 'Content-Type'
+
+# 配置Socket.IO
+socketio = SocketIO(app, 
+                   cors_allowed_origins="*",  # 允许所有来源
+                   ping_timeout=60,
+                   async_mode='eventlet',
+                   logger=True,
+                   engineio_logger=True)
 
 # 游戏房间
 rooms = {}
@@ -256,4 +274,4 @@ def handle_start_game(data):
         }, to=player['sid'])
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True) 
+    socketio.run(app, host='0.0.0.0', debug=True, allow_unsafe_werkzeug=True) 
