@@ -33,7 +33,7 @@
 <body>
     <div class="container">
         <!-- 登录界面 -->
-        <div id="login-screen" class="screen">
+        <div id="login-screen" class="login-screen">
             <div class="casino-logo">
                 <div class="logo-icon"><i class="fas fa-crown"></i></div>
                 <h1>豪华德州扑克</h1>
@@ -52,11 +52,16 @@
                         <div class="avatar-selection">
                             <label>选择头像</label>
                             <div class="avatar-options">
-                                <div class="avatar-option selected" data-avatar="avatar1"><i class="fas fa-user-tie"></i></div>
-                                <div class="avatar-option" data-avatar="avatar2"><i class="fas fa-user-ninja"></i></div>
-                                <div class="avatar-option" data-avatar="avatar3"><i class="fas fa-user-astronaut"></i></div>
-                                <div class="avatar-option" data-avatar="avatar4"><i class="fas fa-user-secret"></i></div>
-                                <div class="avatar-option" data-avatar="avatar5"><i class="fas fa-user-crown"></i></div>
+                                <div class="avatar-option selected" data-avatar="user-tie"><i class="fas fa-user-tie"></i></div>
+                                <div class="avatar-option" data-avatar="user-ninja"><i class="fas fa-user-ninja"></i></div>
+                                <div class="avatar-option" data-avatar="user-astronaut"><i class="fas fa-user-astronaut"></i></div>
+                                <div class="avatar-option" data-avatar="user-secret"><i class="fas fa-user-secret"></i></div>
+                                <div class="avatar-option" data-avatar="user-graduate"><i class="fas fa-user-graduate"></i></div>
+                                <div class="avatar-option" data-avatar="user-doctor"><i class="fas fa-user-md"></i></div>
+                                <div class="avatar-option" data-avatar="user-cowboy"><i class="fas fa-hat-cowboy"></i></div>
+                                <div class="avatar-option" data-avatar="user-crown"><i class="fas fa-crown"></i></div>
+                                <div class="avatar-option" data-avatar="user-alien"><i class="fas fa-user-alien"></i></div>
+                                <div class="avatar-option" data-avatar="user-robot"><i class="fas fa-robot"></i></div>
                             </div>
                         </div>
                         
@@ -94,22 +99,27 @@
                         <div class="avatar-selection">
                             <label>选择头像</label>
                             <div class="avatar-options">
-                                <div class="avatar-option selected" data-avatar="avatar1"><i class="fas fa-user-tie"></i></div>
-                                <div class="avatar-option" data-avatar="avatar2"><i class="fas fa-user-ninja"></i></div>
-                                <div class="avatar-option" data-avatar="avatar3"><i class="fas fa-user-astronaut"></i></div>
-                                <div class="avatar-option" data-avatar="avatar4"><i class="fas fa-user-secret"></i></div>
-                                <div class="avatar-option" data-avatar="avatar5"><i class="fas fa-user-crown"></i></div>
+                                <div class="avatar-option selected" data-avatar="user-tie"><i class="fas fa-user-tie"></i></div>
+                                <div class="avatar-option" data-avatar="user-ninja"><i class="fas fa-user-ninja"></i></div>
+                                <div class="avatar-option" data-avatar="user-astronaut"><i class="fas fa-user-astronaut"></i></div>
+                                <div class="avatar-option" data-avatar="user-secret"><i class="fas fa-user-secret"></i></div>
+                                <div class="avatar-option" data-avatar="user-graduate"><i class="fas fa-user-graduate"></i></div>
+                                <div class="avatar-option" data-avatar="user-doctor"><i class="fas fa-user-md"></i></div>
+                                <div class="avatar-option" data-avatar="user-cowboy"><i class="fas fa-hat-cowboy"></i></div>
+                                <div class="avatar-option" data-avatar="user-crown"><i class="fas fa-crown"></i></div>
+                                <div class="avatar-option" data-avatar="user-alien"><i class="fas fa-user-alien"></i></div>
+                                <div class="avatar-option" data-avatar="user-robot"><i class="fas fa-robot"></i></div>
                             </div>
                         </div>
                         
                         <input type="text" id="join-username" placeholder="输入您的尊贵昵称">
                         <input type="text" id="room-id" placeholder="输入房间号">
                         
-                        <button id="join-room-btn" class="gold-btn" style="position: relative; background: linear-gradient(to bottom, #ff9500, #ff3b30); box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3); font-weight: bold;" onclick="joinRoomDirectly(); return false;">加入豪华房间</button>
+                        <button id="join-room-btn" class="gold-btn">加入豪华房间</button>
                     </div>
                 </div>
             </div>
-            
+
             <!-- 房间创建成功提示 -->
             <div id="room-created" class="notification hidden">
                 <div class="notification-content">
@@ -197,14 +207,14 @@
                             <span class="room-id-label">房间号:</span>
                             <span id="room-id-value" class="room-id-value">-</span>
                         </div>
-                        <button id="copy-room-id" class="copy-btn">复制</button>
+                        <button id="copy-waiting-room-id" class="copy-btn">复制</button>
                     </div>
                     
                     <div class="player-status">
                         <p>当前玩家: <span id="current-player-count">1</span>/10</p>
                         <div id="waiting-players" class="waiting-players"></div>
                     </div>
-                    
+
                     <div id="host-controls" class="host-controls">
                         <p><span class="host-tag">房主</span> 您可以决定何时开始游戏</p>
                         <button id="start-game-btn" class="btn" disabled>开始游戏 (至少需要2位玩家)</button>
@@ -352,156 +362,7 @@
         </div>
     </div>
 
-    <!-- 性能设置选项 -->
-    <div class="performance-toggle" id="performance-toggle" aria-label="性能设置" role="button" tabindex="0">
-        <div class="performance-toggle-icon">
-            <i class="fas fa-sliders-h"></i>
-        </div>
-    </div>
-    
-    <div class="performance-menu" id="performance-menu" role="dialog" aria-label="性能设置选项">
-        <h3>性能选项</h3>
-        
-        <div class="performance-option">
-            <div class="performance-option-label">
-                <span>动画效果</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="toggle-animations" checked aria-label="启用动画效果">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="option-description">启用或禁用卡牌动画效果</div>
-        </div>
-        
-        <div class="performance-option">
-            <div class="performance-option-label">
-                <span>模糊效果</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="toggle-blur" checked aria-label="启用模糊效果">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="option-description">启用或禁用背景模糊效果(提升性能)</div>
-        </div>
-        
-        <div class="performance-option">
-            <div class="performance-option-label">
-                <span>动画速度</span>
-            </div>
-            <input type="range" id="animation-speed" min="0.5" max="2" step="0.1" value="1" aria-label="动画速度">
-            <div class="slider-labels">
-                <span>慢</span>
-                <span>中</span>
-                <span>快</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 标签页切换专用脚本 -->
-    <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
-    
-    <!-- 标签页切换独立脚本 - 确保在任何情况下都能工作 -->
-    <script>
-        // 立即执行的标签页切换脚本
-        (function() {
-            console.log('初始化标签页切换功能...');
-            
-            // 主标签页切换功能
-            function initTabs() {
-                const tabBtns = document.querySelectorAll('.tab-btn');
-                if (tabBtns.length === 0) {
-                    console.error('未找到标签页按钮');
-                    return;
-                }
-                
-                tabBtns.forEach(btn => {
-                    // 移除现有事件监听器，防止重复绑定
-                    const newBtn = btn.cloneNode(true);
-                    btn.parentNode.replaceChild(newBtn, btn);
-                    
-                    // 添加新的事件监听器
-                    newBtn.addEventListener('click', function(e) {
-                        const targetTab = this.getAttribute('data-tab');
-                        console.log('切换到标签页: ' + targetTab);
-                        
-                        // 移除所有活动状态
-                        tabBtns.forEach(b => b.classList.remove('active'));
-                        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-                        
-                        // 添加活动状态到当前选项
-                        this.classList.add('active');
-                        const pane = document.getElementById(targetTab + '-tab');
-                        if (pane) {
-                            pane.classList.add('active');
-                        } else {
-                            console.error('找不到对应的标签内容: ' + targetTab + '-tab');
-                        }
-                    });
-                });
-                
-                console.log('标签页切换功能已初始化');
-            }
-            
-            // 如果DOM已加载完成，立即初始化标签页
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initTabs);
-            } else {
-                initTabs();
-            }
-            
-            // 尝试直接修复加入房间按钮
-            setTimeout(function() {
-                const joinRoomBtn = document.getElementById('join-room-btn');
-                if (joinRoomBtn) {
-                    console.log('发现加入房间按钮，添加直接点击事件');
-                    
-                    // 移除现有事件监听器
-                    const newBtn = joinRoomBtn.cloneNode(true);
-                    if (joinRoomBtn.parentNode) {
-                        joinRoomBtn.parentNode.replaceChild(newBtn, joinRoomBtn);
-                    }
-                    
-                    // 添加直接的点击事件处理
-                    newBtn.addEventListener('click', function() {
-                        console.log('加入房间按钮被点击');
-                        
-                        const username = document.getElementById('join-username').value.trim();
-                        const roomId = document.getElementById('room-id').value.trim();
-                        
-                        if (!username) {
-                            alert('请输入用户名');
-                            return;
-                        }
-                        
-                        if (!roomId) {
-                            alert('请输入房间号');
-                            return;
-                        }
-                        
-                        console.log(`尝试加入房间 - 用户: ${username}, 房间: ${roomId}`);
-                        
-                        // 使用Socket.IO加入房间
-                        if (typeof io !== 'undefined') {
-                            const socket = io();
-                            socket.emit('join_room', {
-                                username: username,
-                                room_id: roomId,
-                                avatar: 'avatar1'
-                            });
-                            
-                            alert('正在加入房间: ' + roomId + '，请等待...');
-                        } else {
-                            alert('Socket.IO未加载，无法连接服务器');
-                        }
-                    });
-                } else {
-                    console.error('未找到加入房间按钮');
-                }
-            }, 1000);
-        })();
-    </script>
-    
     <!-- 主游戏脚本 -->
-    <script src="{{ url_for('static', filename='js/simple.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html> 
